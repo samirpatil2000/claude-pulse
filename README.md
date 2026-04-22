@@ -27,6 +27,18 @@
 
 ---
 
+#### Screenshots 
+
+<img width="991" height="767" alt="Screenshot 2026-04-21 at 23 26 01" src="https://github.com/user-attachments/assets/dd006d83-ccd5-4365-9827-bb55cade66d3" />
+
+---------
+
+
+<img width="993" height="812" alt="Screenshot 2026-04-21 at 23 30 05" src="https://github.com/user-attachments/assets/90b557d5-e8aa-43f4-b57e-59e6804735ef" />
+
+
+
+
 ### 📥 Installation
 
 #### Live Link 
@@ -104,8 +116,8 @@ Claude Pulse is built on a "zero-trust" architecture regarding your data.
 ## 🤝 Credits
 
 Inspired by and building upon [Claude Counter](https://github.com/mechanicalAnt/claude-counter). This project is a modern reimplementation with a focus on premium UI and expanded metric tracking.
-
 Tokenization powered by [gpt-tokenizer](https://github.com/niieani/gpt-tokenizer) (`o200k_base` encoding).
+
 ---
 
 ## 📄 License
