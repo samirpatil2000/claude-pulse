@@ -29,6 +29,10 @@
 
 ### 📥 Installation
 
+#### Live Link 
+[Claude Pulse – Chrome Web Store](https://chromewebstore.google.com/detail/claude-pulse/hhjihbpkopgacncfbkdakdolkmgkdfnf)
+
+
 #### Chrome / Brave / Edge
 1. Download or clone this repository
 2. Open `chrome://extensions`
