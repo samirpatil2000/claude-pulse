@@ -115,7 +115,7 @@ Claude Pulse is built on a "zero-trust" architecture regarding your data.
 
 ## 🤝 Credits
 
-Inspired by and building upon [Claude Counter](https://github.com/mechanicalAnt/claude-counter). This project is a modern reimplementation with a focus on premium UI and expanded metric tracking.
+Inspired by and building upon [Claude Counter](https://github.com/she-llac/claude-counter). This project is a modern reimplementation with a focus on premium UI and expanded metric tracking.
 Tokenization powered by [gpt-tokenizer](https://github.com/niieani/gpt-tokenizer) (`o200k_base` encoding).
 
 ---
