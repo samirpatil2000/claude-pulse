@@ -21,6 +21,7 @@
 - **Token Counter** — Know your context window at all times. Live approximate counting using the `o200k_base` tokenizer.
 - **Cache Timer** — Never miss the 5-minute cache window. A live countdown shows exactly when your next message will be cheaper.
 - **Usage Progress Bars** — Visual monitoring of your 5-hour session and 7-day rolling limits with real-time percentage markers.
+- **Chat History Export** — Export your entire conversation as plain text or formatted Markdown with a single click.
 - **100% Private & Local** — No external servers, no tracking. All data is processed locally in your browser.
 - **Native UI Integration** — Discreetly blends into Claude's interface for a premium, built-in feel.
 - **Open Source** — MIT license, designed for the community.
