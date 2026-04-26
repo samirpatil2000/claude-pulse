@@ -72,7 +72,7 @@ Claude Pulse provides a transparent look into the "invisible" metrics of your Cl
 ## 🖥️ UI Overview
 
 <p align="center">
-  <em>The injected metrics header displays tokens, cache status, and usage limits directly above your chat input.</em>
+  <em>The injected metrics header displays tokens, cache status, usage limits, and export options directly above your chat input.</em>
 </p>
 
 ---
