@@ -115,6 +115,7 @@
 
 	let currentConversationId = null;
 	let currentOrgId = null;
+	let latestConversationData = null;
 
 	let usageState = null;
 	let usageResetMs = { five_hour: null, seven_day: null };
@@ -126,6 +127,13 @@
 	const ui = new CC.ui.CounterUI({
 		onUsageRefresh: async () => {
 			await refreshUsage();
+		},
+		onCopyChat: (format) => {
+			if (!latestConversationData) return null;
+			const trunk = CC.tokens.buildTrunk(latestConversationData);
+			if (!trunk.length) return null;
+			if (format === 'markdown') return CC.tokens.formatTrunkAsMarkdown(trunk);
+			return CC.tokens.formatTrunkAsText(trunk);
 		}
 	});
 	ui.initialize();
@@ -198,6 +206,7 @@
 		updateOrgIdIfNeeded(orgId);
 		if (!data) return;
 
+		latestConversationData = data;
 		const metrics = await CC.tokens.computeConversationMetrics(data);
 		ui.setConversationMetrics({ totalTokens: metrics.totalTokens, cachedUntil: metrics.cachedUntil });
 	}
@@ -222,6 +231,7 @@
 		});
 
 		if (!currentConversationId) {
+			latestConversationData = null;
 			ui.setConversationMetrics();
 			return;
 		}

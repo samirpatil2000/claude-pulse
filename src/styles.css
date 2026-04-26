@@ -248,6 +248,93 @@
 	cursor: default;
 }
 
+/* ── Copy button ── */
+
+.cc-copyBtn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	position: relative;
+	cursor: pointer;
+	opacity: 0.5;
+	transition: opacity 200ms ease, transform 150ms ease;
+	padding: 1px;
+	border-radius: 3px;
+}
+
+.cc-copyBtn:hover {
+	opacity: 0.9;
+}
+
+.cc-copyBtn:active {
+	transform: scale(0.9);
+}
+
+.cc-copyBtn__icon,
+.cc-copyBtn__check {
+	transition: opacity 200ms ease, transform 200ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.cc-copyBtn__check {
+	position: absolute;
+	opacity: 0;
+	transform: scale(0.5);
+	color: #16a34a;
+}
+
+.cc-copyBtn--done .cc-copyBtn__icon {
+	opacity: 0;
+	transform: scale(0.5);
+}
+
+.cc-copyBtn--done .cc-copyBtn__check {
+	opacity: 1;
+	transform: scale(1);
+}
+
+/* ── Copy dropdown ── */
+
+.cc-copyDropdown {
+	position: fixed;
+	z-index: 9999;
+	display: none;
+	flex-direction: column;
+	min-width: 150px;
+	padding: 4px;
+	border-radius: 10px;
+	-webkit-backdrop-filter: blur(20px) saturate(1.3);
+	backdrop-filter: blur(20px) saturate(1.3);
+	background: rgba(0, 0, 0, 0.7);
+	box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18),
+	            0 0 0 0.5px rgba(255, 255, 255, 0.08);
+	animation: cc-fadeIn 150ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.cc-copyDropdown--open {
+	display: flex;
+}
+
+.cc-copyDropdown__item {
+	all: unset;
+	display: block;
+	padding: 7px 12px;
+	font-size: 12px;
+	color: rgba(255, 255, 255, 0.88);
+	border-radius: 7px;
+	cursor: pointer;
+	transition: background 120ms ease;
+	white-space: nowrap;
+	letter-spacing: 0.01em;
+}
+
+.cc-copyDropdown__item:hover {
+	background: rgba(255, 255, 255, 0.12);
+}
+
+.cc-copyDropdown__item:active {
+	background: rgba(255, 255, 255, 0.18);
+}
+
 /* ── Hide optional elements ── */
 
 .cc-hidden {

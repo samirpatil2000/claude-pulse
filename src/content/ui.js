@@ -111,8 +111,9 @@
 	// ── Main UI class ──
 
 	class CounterUI {
-		constructor({ onUsageRefresh } = {}) {
+		constructor({ onUsageRefresh, onCopyChat } = {}) {
 			this.onUsageRefresh = onUsageRefresh || null;
+			this.onCopyChat = onCopyChat || null;
 
 			this.headerContainer = null;
 			this.headerDisplay = null;
@@ -203,6 +204,7 @@
 			this.lengthGroup.appendChild(this.lengthDisplay);
 			this.headerDisplay.appendChild(this.lengthGroup);
 
+			this._initCopyButton();
 			this._initUsageLine();
 			this._setupTooltips();
 			this._observeDom();
@@ -315,6 +317,9 @@
 				makeTooltip('Messages sent while cached cost significantly less.'),
 				{ topOffset: 8 }
 			);
+
+			this._copyTooltip = makeTooltip('Copy entire chat');
+			setupTooltip(this.copyButton, this._copyTooltip, { topOffset: 8 });
 
 			this._sessionTooltip = makeTooltip('5-hour session window\nBar = usage · Line = time position\nClick to refresh');
 			setupTooltip(this.sessionGroup, this._sessionTooltip, { topOffset: 8 });
@@ -475,6 +480,12 @@
 				items.push(sep, this.cachedDisplay);
 			}
 
+			// Add copy button separator and button
+			const copySep = document.createElement('span');
+			copySep.className = 'cc-sep';
+			copySep.textContent = '·';
+			items.push(copySep, this.copyButton);
+
 			this.headerDisplay.replaceChildren(...items);
 			this.headerContainer.appendChild(this.headerDisplay);
 		}
@@ -606,6 +617,90 @@
 			}
 
 			this._updateMarkers();
+		}
+
+		// ── Copy button + dropdown ──
+
+		_initCopyButton() {
+			this.copyButton = document.createElement('span');
+			this.copyButton.className = 'cc-copyBtn cc-tooltipTrigger';
+			this.copyButton.innerHTML = `
+				<svg class="cc-copyBtn__icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+					<rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+					<path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+				</svg>
+				<svg class="cc-copyBtn__check" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+					<polyline points="20 6 9 17 4 12"></polyline>
+				</svg>
+			`;
+
+			// Dropdown
+			this.copyDropdown = document.createElement('div');
+			this.copyDropdown.className = 'cc-copyDropdown';
+
+			const makeOption = (label, format) => {
+				const btn = document.createElement('button');
+				btn.className = 'cc-copyDropdown__item';
+				btn.textContent = label;
+				btn.addEventListener('click', (e) => {
+					e.stopPropagation();
+					this._doCopy(format);
+				});
+				return btn;
+			};
+
+			this.copyDropdown.appendChild(makeOption('Copy as Text', 'text'));
+			this.copyDropdown.appendChild(makeOption('Copy as Markdown', 'markdown'));
+			document.body.appendChild(this.copyDropdown);
+
+			// Toggle dropdown on button click
+			this.copyButton.addEventListener('click', (e) => {
+				e.stopPropagation();
+				this._toggleCopyDropdown();
+			});
+
+			// Close dropdown on outside click
+			document.addEventListener('click', () => {
+				this._closeCopyDropdown();
+			});
+		}
+
+		_toggleCopyDropdown() {
+			const isOpen = this.copyDropdown.classList.contains('cc-copyDropdown--open');
+			if (isOpen) {
+				this._closeCopyDropdown();
+				return;
+			}
+
+			const rect = this.copyButton.getBoundingClientRect();
+			this.copyDropdown.style.top = `${rect.bottom + 6}px`;
+			this.copyDropdown.style.left = `${rect.left}px`;
+			this.copyDropdown.classList.add('cc-copyDropdown--open');
+		}
+
+		_closeCopyDropdown() {
+			this.copyDropdown.classList.remove('cc-copyDropdown--open');
+		}
+
+		async _doCopy(format) {
+			this._closeCopyDropdown();
+			if (!this.onCopyChat) return;
+
+			try {
+				const text = await this.onCopyChat(format);
+				if (!text) return;
+				await navigator.clipboard.writeText(text);
+				this._showCopySuccess();
+			} catch (err) {
+				console.warn('[Claude Pulse] Copy failed:', err);
+			}
+		}
+
+		_showCopySuccess() {
+			this.copyButton.classList.add('cc-copyBtn--done');
+			setTimeout(() => {
+				this.copyButton.classList.remove('cc-copyBtn--done');
+			}, 1500);
 		}
 	}
 

@@ -100,6 +100,67 @@
 		return stableStringify(minimal);
 	}
 
+	// ── Readable content extraction (for copy) ──
+
+	function readableContentItem(item) {
+		if (!item || typeof item !== 'object') return '';
+		if (item.type === 'thinking' || item.type === 'redacted_thinking') return '';
+		if (item.type === 'text' && typeof item.text === 'string') return item.text;
+		if (item.type === 'tool_use') return `[Tool call: ${item.name || 'unknown'}]`;
+		if (item.type === 'tool_result') {
+			const body = typeof item.content === 'string'
+				? item.content
+				: Array.isArray(item.content)
+					? item.content.map(readableContentItem).filter(Boolean).join('\n')
+					: '';
+			return body ? `[Tool result]\n${body}` : '[Tool result]';
+		}
+		if (item.type === 'image') return '[Image]';
+		if (item.type === 'document') return `[Document: ${item.title || item.file_name || 'file'}]`;
+		if (typeof item.text === 'string') return item.text;
+		return '';
+	}
+
+	function readableMessageBody(message) {
+		const parts = [];
+		const content = Array.isArray(message?.content) ? message.content : [];
+		for (const item of content) {
+			const s = readableContentItem(item);
+			if (s) parts.push(s);
+		}
+		const attachments = Array.isArray(message?.attachments) ? message.attachments : [];
+		for (const a of attachments) {
+			if (a?.file_name) parts.push(`[Attachment: ${a.file_name}]`);
+		}
+		return parts.join('\n');
+	}
+
+	function senderLabel(sender) {
+		if (sender === 'human') return 'Human';
+		if (sender === 'assistant') return 'Assistant';
+		return sender || 'Unknown';
+	}
+
+	function formatTrunkAsText(trunk) {
+		const lines = [];
+		for (const msg of trunk) {
+			const label = senderLabel(msg.sender);
+			const body = readableMessageBody(msg);
+			lines.push(`${label}:\n${body}`);
+		}
+		return lines.join('\n\n---\n\n');
+	}
+
+	function formatTrunkAsMarkdown(trunk) {
+		const lines = [];
+		for (const msg of trunk) {
+			const label = senderLabel(msg.sender);
+			const body = readableMessageBody(msg);
+			lines.push(`## ${label}\n\n${body}`);
+		}
+		return lines.join('\n\n---\n\n');
+	}
+
 	function stringifyMessageCountables(message) {
 		const parts = [];
 
@@ -191,5 +252,5 @@
 		return { trunkMessageCount: trunk.length, totalTokens, lastAssistantMs, cachedUntil };
 	}
 
-	CC.tokens = { computeConversationMetrics };
+	CC.tokens = { computeConversationMetrics, buildTrunk, formatTrunkAsText, formatTrunkAsMarkdown };
 })();
