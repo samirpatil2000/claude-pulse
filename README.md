@@ -11,6 +11,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/Chrome-Verified-4285F4?style=for-the-badge&logo=google-chrome" alt="Chrome">
   <img src="https://img.shields.io/badge/Firefox-Compatible-FF7139?style=for-the-badge&logo=firefox-browser" alt="Firefox">
+  <img src="https://img.shields.io/badge/Safari-Compatible-000000?style=for-the-badge&logo=safari" alt="Safari">
   <img src="https://img.shields.io/badge/Privacy-100%25_Local-brightgreen?style=for-the-badge" alt="Privacy">
 </p>
 
@@ -57,6 +58,15 @@
 3. Click **Load Temporary Add-on**
 4. Select the `manifest.json` file inside the `claude-pulse` folder
 
+#### Safari (macOS 13+)
+1. Download or clone this repository
+2. Run `./safari/build.sh` to generate an Xcode container app
+3. Open the generated project in Xcode and press **⌘R**
+4. Enable the extension under **Safari → Settings → Extensions**
+
+See [`safari/README.md`](safari/README.md) for detailed build and signing
+instructions.
+
 ---
 
 ## 🚀 How it Works
@@ -95,6 +105,9 @@ claude-pulse/
 │   │   └── bridge.js      # XHR/Fetch interceptor for raw API data
 │   └── vendor/
 │       └── o200k_base.js  # Optimized tokenizer encoding
+├── safari/               # Safari build tooling (Xcode wrapper)
+│   ├── build.sh          # Runs safari-web-extension-converter
+│   └── README.md         # Safari build & signing guide
 └── claude_pulse_logo.svg # Source vector asset
 ```
 
