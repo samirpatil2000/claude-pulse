@@ -50,32 +50,6 @@
 		return parts.join(' · ');
 	}
 
-	function formatRelativeUpdated(tsMs) {
-		if (typeof tsMs !== 'number' || !Number.isFinite(tsMs)) return '';
-		const sec = Math.max(0, Math.floor((Date.now() - tsMs) / 1000));
-		if (sec < 10) return 'now';
-		if (sec < 60) return `${sec}s`;
-		const min = Math.floor(sec / 60);
-		if (min < 60) return `${min}m`;
-		const h = Math.floor(min / 60);
-		if (h < 48) return `${h}h`;
-		const d = Math.floor(h / 24);
-		return `${d}d`;
-	}
-
-	function formatRelativeUpdatedTitle(tsMs) {
-		if (typeof tsMs !== 'number' || !Number.isFinite(tsMs)) return '';
-		const sec = Math.max(0, Math.floor((Date.now() - tsMs) / 1000));
-		if (sec < 8) return 'Last updated just now';
-		if (sec < 60) return `Last updated ${sec} seconds ago`;
-		const min = Math.floor(sec / 60);
-		if (min < 60) return `Last updated ${min} minutes ago`;
-		const h = Math.floor(min / 60);
-		if (h < 48) return `Last updated ${h} hours ago`;
-		const d = Math.floor(h / 24);
-		return `Last updated ${d} days ago`;
-	}
-
 	// ── Tooltip system ──
 
 	function setupTooltip(element, tooltip, { topOffset = 10 } = {}) {
@@ -178,9 +152,7 @@
 			this.refreshingUsage = false;
 
 			this.usageMetaGroup = null;
-			this.usageLastUpdatedSpan = null;
 			this.usageRefreshBtn = null;
-			this.usageLastUpdatedMs = null;
 
 			this.domObserver = null;
 		}
@@ -288,7 +260,7 @@
 		_initUsageLine() {
 			this.usageLine = document.createElement('div');
 			this.usageLine.className =
-				'text-text-400 text-[12px] cc-usageRow cc-hidden flex flex-row flex-nowrap items-center gap-3 w-full';
+				'text-text-400 text-[14px] cc-usageRow cc-hidden flex flex-row flex-nowrap items-center gap-3 w-full';
 
 			this.sessionGroup = document.createElement('div');
 			this.sessionGroup.className = 'cc-usageGroup cc-usageStrip';
@@ -336,10 +308,6 @@
 			this.usageMetaGroup = document.createElement('div');
 			this.usageMetaGroup.className = 'cc-usageMeta';
 
-			this.usageLastUpdatedSpan = document.createElement('span');
-			this.usageLastUpdatedSpan.className = 'cc-usageMetaUpdated';
-			this.usageLastUpdatedSpan.setAttribute('aria-live', 'polite');
-
 			this.usageRefreshBtn = document.createElement('button');
 			this.usageRefreshBtn.type = 'button';
 			this.usageRefreshBtn.className = 'cc-usageRefresh cc-tooltipTrigger';
@@ -356,7 +324,6 @@
 				this._refreshUsage();
 			});
 
-			this.usageMetaGroup.appendChild(this.usageLastUpdatedSpan);
 			this.usageMetaGroup.appendChild(this.usageRefreshBtn);
 			this.usageLine.appendChild(this.usageMetaGroup);
 
@@ -377,17 +344,6 @@
 				this.usageMetaGroup?.classList.remove('cc-usageMeta--busy');
 				this.refreshingUsage = false;
 			}
-		}
-
-		_renderUsageLastUpdated() {
-			if (!this.usageLastUpdatedSpan) return;
-			if (this.usageLastUpdatedMs == null) {
-				this.usageLastUpdatedSpan.textContent = '';
-				this.usageLastUpdatedSpan.removeAttribute('title');
-				return;
-			}
-			this.usageLastUpdatedSpan.textContent = formatRelativeUpdated(this.usageLastUpdatedMs);
-			this.usageLastUpdatedSpan.title = formatRelativeUpdatedTitle(this.usageLastUpdatedMs);
 		}
 
 		_setupTooltips() {
@@ -622,11 +578,6 @@
 				this.weeklyBarFill.classList.remove('cc-warn', 'cc-critical', 'cc-full');
 			}
 
-			if (hasAnyUsage) {
-				this.usageLastUpdatedMs = Date.now();
-				this._renderUsageLastUpdated();
-			}
-
 			this._renderUsageStripText();
 		}
 
@@ -669,7 +620,6 @@
 				this._renderHeader();
 			}
 
-			this._renderUsageLastUpdated();
 			this._renderUsageStripText();
 		}
 

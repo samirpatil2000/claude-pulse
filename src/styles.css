@@ -118,7 +118,7 @@
 
 .cc-usageStrip__label {
 	font-weight: 500;
-	font-size: 11px;
+	font-size: 12px;
 	opacity: 0.75;
 	letter-spacing: 0.03em;
 	flex-shrink: 0;
@@ -129,7 +129,7 @@
 }
 
 .cc-usageStrip__meta {
-	font-size: 11px;
+	font-size: 13px;
 	line-height: 1.25;
 	opacity: 0.62;
 	font-variant-numeric: tabular-nums;
@@ -152,16 +152,6 @@
 
 .cc-usageMeta--busy {
 	opacity: 0.75;
-}
-
-.cc-usageMetaUpdated {
-	font-size: 11px;
-	opacity: 0.55;
-	letter-spacing: 0.02em;
-	white-space: nowrap;
-	max-width: 7.5rem;
-	overflow: hidden;
-	text-overflow: ellipsis;
 }
 
 .cc-usageRefresh {
