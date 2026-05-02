@@ -123,6 +123,7 @@
 	let usageFetchInFlight = false;
 	let lastUsageUpdateMs = 0;
 	const rolloverHandledForResetMs = { five_hour: null, seven_day: null };
+	let lastPeriodicUsageRefreshMs = Date.now();
 
 	const ui = new CC.ui.CounterUI({
 		onUsageRefresh: async () => {
@@ -176,6 +177,7 @@
 
 		const parsed = parseUsageFromUsageEndpoint(raw);
 		applyUsageUpdate(parsed, 'usage');
+		lastPeriodicUsageRefreshMs = Date.now();
 	}
 
 	async function refreshConversation() {
@@ -311,6 +313,13 @@
 			now - lastUsageSseMs > ONE_HOUR_MS &&
 			now - lastUsageUpdateMs > ONE_HOUR_MS
 		) {
+			refreshUsage();
+		}
+
+		// Periodic usage refresh every 2 minutes while tab is visible (no on-screen “last updated” label)
+		const TWO_MIN_MS = 2 * 60 * 1000;
+		if (!document.hidden && now - lastPeriodicUsageRefreshMs >= TWO_MIN_MS) {
+			lastPeriodicUsageRefreshMs = now;
 			refreshUsage();
 		}
 	}

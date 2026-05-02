@@ -41,8 +41,8 @@
 
 ### 📥 Installation
 
-#### Live Link 
-[Claude Pulse – Chrome Web Store](https://chromewebstore.google.com/detail/claude-pulse/hhjihbpkopgacncfbkdakdolkmgkdfnf)
+#### Chrome Web Store
+[Claude Pulse on the Chrome Web Store](https://chromewebstore.google.com/detail/claude-pulse/hhjihbpkopgacncfbkdakdolkmgkdfnf)
 
 
 #### Chrome / Brave / Edge
@@ -82,7 +82,7 @@ Claude Pulse provides a transparent look into the "invisible" metrics of your Cl
 ```
 claude-pulse/
 ├── manifest.json         # Extension configuration & permissions
-├── icons/                # Extension branding (PNAs)
+├── icons/                # Extension branding (PNGs)
 ├── src/
 │   ├── styles.css        # Premium UI styling & animations
 │   ├── content/
