@@ -89,29 +89,11 @@
 .cc-usageRow {
 	position: relative;
 	z-index: 50;
-	cursor: pointer;
 	user-select: none;
-	transition: opacity 200ms ease;
 	animation: cc-fadeIn 400ms cubic-bezier(0.22, 1, 0.36, 1) 100ms both;
 }
 
-.cc-usageRow:hover {
-	opacity: 0.85;
-}
-
-.cc-usageRow:active {
-	transform: scale(0.995);
-}
-
-.cc-usageRow--dim {
-	opacity: 0.5;
-	transition: opacity 150ms ease;
-}
-
 .cc-usageGroup {
-	display: flex;
-	align-items: center;
-	gap: 8px;
 	flex: 1;
 	min-width: 0;
 }
@@ -120,15 +102,101 @@
 	width: 100%;
 }
 
-.cc-usageGroup--weekly {
+/* One horizontal line per limit: label · mini bar · compact stats + reset */
+
+.cc-usageStrip {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 6px;
+	min-width: 0;
+}
+
+.cc-usageStrip--end {
 	justify-content: flex-end;
 }
 
-.cc-usageText {
-	white-space: nowrap;
+.cc-usageStrip__label {
+	font-weight: 500;
+	font-size: 10px;
+	opacity: 0.75;
+	letter-spacing: 0.03em;
+	flex-shrink: 0;
+}
+
+.cc-usageStrip__bar {
+	flex-shrink: 0;
+}
+
+.cc-usageStrip__meta {
+	font-size: 10px;
+	line-height: 1.2;
+	opacity: 0.62;
 	font-variant-numeric: tabular-nums;
 	font-feature-settings: "tnum";
 	letter-spacing: 0.01em;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.cc-usageMeta {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	flex-shrink: 0;
+	margin-left: auto;
+	padding-left: 4px;
+}
+
+.cc-usageMeta--busy {
+	opacity: 0.75;
+}
+
+.cc-usageMetaUpdated {
+	font-size: 10px;
+	opacity: 0.55;
+	letter-spacing: 0.02em;
+	white-space: nowrap;
+	max-width: 7.5rem;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.cc-usageRefresh {
+	all: unset;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+	opacity: 0.55;
+	padding: 2px;
+	border-radius: 4px;
+	transition: opacity 150ms ease, transform 150ms ease;
+	box-sizing: border-box;
+}
+
+.cc-usageRefresh:hover {
+	opacity: 0.95;
+}
+
+.cc-usageRefresh:active:not(:disabled) {
+	transform: scale(0.92);
+}
+
+.cc-usageRefresh:focus-visible {
+	outline: 1px solid currentColor;
+	outline-offset: 2px;
+	border-radius: 4px;
+}
+
+.cc-usageRefresh:disabled {
+	cursor: wait;
+}
+
+.cc-usageRefresh.cc-usageRefresh--busy svg {
+	animation: cc-spin 0.75s linear infinite;
 }
 
 /* ── Bars (pill-shaped, borderless) ── */

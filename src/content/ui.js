@@ -39,6 +39,43 @@
 		return `~${count}`;
 	}
 
+	const LENGTH_TOOLTIP_DEFAULT = 'Estimated tokens (~)';
+
+	function formatUsageStripText(rawPct, resetMs) {
+		const used = Math.round(rawPct * 10) / 10;
+		const parts = [`${used}% used`];
+		if (resetMs != null && Number.isFinite(resetMs)) {
+			parts.push(`resets in ${formatResetCountdown(resetMs)}`);
+		}
+		return parts.join(' · ');
+	}
+
+	function formatRelativeUpdated(tsMs) {
+		if (typeof tsMs !== 'number' || !Number.isFinite(tsMs)) return '';
+		const sec = Math.max(0, Math.floor((Date.now() - tsMs) / 1000));
+		if (sec < 10) return 'now';
+		if (sec < 60) return `${sec}s`;
+		const min = Math.floor(sec / 60);
+		if (min < 60) return `${min}m`;
+		const h = Math.floor(min / 60);
+		if (h < 48) return `${h}h`;
+		const d = Math.floor(h / 24);
+		return `${d}d`;
+	}
+
+	function formatRelativeUpdatedTitle(tsMs) {
+		if (typeof tsMs !== 'number' || !Number.isFinite(tsMs)) return '';
+		const sec = Math.max(0, Math.floor((Date.now() - tsMs) / 1000));
+		if (sec < 8) return 'Last updated just now';
+		if (sec < 60) return `Last updated ${sec} seconds ago`;
+		const min = Math.floor(sec / 60);
+		if (min < 60) return `Last updated ${min} minutes ago`;
+		const h = Math.floor(min / 60);
+		if (h < 48) return `Last updated ${h} hours ago`;
+		const d = Math.floor(h / 24);
+		return `Last updated ${d} days ago`;
+	}
+
 	// ── Tooltip system ──
 
 	function setupTooltip(element, tooltip, { topOffset = 10 } = {}) {
@@ -126,19 +163,24 @@
 			this.pendingCache = false;
 
 			this.usageLine = null;
-			this.sessionUsageSpan = null;
-			this.weeklyUsageSpan = null;
+			this.sessionTitleSpan = null;
+			this.sessionInlineSpan = null;
+			this.weeklyTitleSpan = null;
+			this.weeklyInlineSpan = null;
+			this._sessionUtilPct = null;
+			this._weeklyUtilPct = null;
 			this.sessionBar = null;
 			this.sessionBarFill = null;
 			this.weeklyBar = null;
 			this.weeklyBarFill = null;
 			this.sessionResetMs = null;
 			this.weeklyResetMs = null;
-			this.sessionMarker = null;
-			this.weeklyMarker = null;
-			this.sessionWindowStartMs = null;
-			this.weeklyWindowStartMs = null;
 			this.refreshingUsage = false;
+
+			this.usageMetaGroup = null;
+			this.usageLastUpdatedSpan = null;
+			this.usageRefreshBtn = null;
+			this.usageLastUpdatedMs = null;
 
 			this.domObserver = null;
 		}
@@ -246,86 +288,125 @@
 		_initUsageLine() {
 			this.usageLine = document.createElement('div');
 			this.usageLine.className =
-				'text-text-400 text-[11px] cc-usageRow cc-hidden flex flex-row items-center gap-3 w-full';
-
-			this.sessionUsageSpan = document.createElement('span');
-			this.sessionUsageSpan.className = 'cc-usageText';
-
-			this.sessionBar = document.createElement('div');
-			this.sessionBar.className = 'cc-bar cc-bar--usage';
-			this.sessionBarFill = document.createElement('div');
-			this.sessionBarFill.className = 'cc-bar__fill';
-			this.sessionMarker = document.createElement('div');
-			this.sessionMarker.className = 'cc-bar__marker cc-hidden';
-			this.sessionMarker.style.left = '0%';
-			this.sessionBar.appendChild(this.sessionBarFill);
-			this.sessionBar.appendChild(this.sessionMarker);
-
-			this.weeklyUsageSpan = document.createElement('span');
-			this.weeklyUsageSpan.className = 'cc-usageText';
-
-			this.weeklyBar = document.createElement('div');
-			this.weeklyBar.className = 'cc-bar cc-bar--usage';
-			this.weeklyBarFill = document.createElement('div');
-			this.weeklyBarFill.className = 'cc-bar__fill';
-			this.weeklyMarker = document.createElement('div');
-			this.weeklyMarker.className = 'cc-bar__marker cc-hidden';
-			this.weeklyMarker.style.left = '0%';
-			this.weeklyBar.appendChild(this.weeklyBarFill);
-			this.weeklyBar.appendChild(this.weeklyMarker);
+				'text-text-400 text-[11px] cc-usageRow cc-hidden flex flex-row flex-nowrap items-center gap-3 w-full';
 
 			this.sessionGroup = document.createElement('div');
-			this.sessionGroup.className = 'cc-usageGroup';
-			this.sessionGroup.appendChild(this.sessionUsageSpan);
+			this.sessionGroup.className = 'cc-usageGroup cc-usageStrip';
+
+			this.sessionTitleSpan = document.createElement('span');
+			this.sessionTitleSpan.className = 'cc-usageStrip__label';
+			this.sessionTitleSpan.textContent = '5h';
+
+			this.sessionBar = document.createElement('div');
+			this.sessionBar.className = 'cc-bar cc-bar--mini cc-usageStrip__bar';
+			this.sessionBarFill = document.createElement('div');
+			this.sessionBarFill.className = 'cc-bar__fill';
+			this.sessionBar.appendChild(this.sessionBarFill);
+
+			this.sessionInlineSpan = document.createElement('span');
+			this.sessionInlineSpan.className = 'cc-usageStrip__meta';
+
+			this.sessionGroup.appendChild(this.sessionTitleSpan);
 			this.sessionGroup.appendChild(this.sessionBar);
+			this.sessionGroup.appendChild(this.sessionInlineSpan);
 
 			this.weeklyGroup = document.createElement('div');
-			this.weeklyGroup.className = 'cc-usageGroup cc-usageGroup--weekly';
+			this.weeklyGroup.className = 'cc-usageGroup cc-usageStrip cc-usageStrip--end';
+
+			this.weeklyTitleSpan = document.createElement('span');
+			this.weeklyTitleSpan.className = 'cc-usageStrip__label';
+			this.weeklyTitleSpan.textContent = '7d';
+
+			this.weeklyBar = document.createElement('div');
+			this.weeklyBar.className = 'cc-bar cc-bar--mini cc-usageStrip__bar';
+			this.weeklyBarFill = document.createElement('div');
+			this.weeklyBarFill.className = 'cc-bar__fill';
+			this.weeklyBar.appendChild(this.weeklyBarFill);
+
+			this.weeklyInlineSpan = document.createElement('span');
+			this.weeklyInlineSpan.className = 'cc-usageStrip__meta';
+
+			this.weeklyGroup.appendChild(this.weeklyTitleSpan);
 			this.weeklyGroup.appendChild(this.weeklyBar);
-			this.weeklyGroup.appendChild(this.weeklyUsageSpan);
+			this.weeklyGroup.appendChild(this.weeklyInlineSpan);
 
 			this.usageLine.appendChild(this.sessionGroup);
 			this.usageLine.appendChild(this.weeklyGroup);
 
-			this.refreshProgressChrome();
+			this.usageMetaGroup = document.createElement('div');
+			this.usageMetaGroup.className = 'cc-usageMeta';
 
-			this.usageLine.addEventListener('click', async () => {
-				if (!this.onUsageRefresh || this.refreshingUsage) return;
-				this.refreshingUsage = true;
-				this.usageLine.classList.add('cc-usageRow--dim');
+			this.usageLastUpdatedSpan = document.createElement('span');
+			this.usageLastUpdatedSpan.className = 'cc-usageMetaUpdated';
+			this.usageLastUpdatedSpan.setAttribute('aria-live', 'polite');
 
-				// Spin logo on refresh
-				this.logoContainer.classList.add('cc-logo--spinning');
-				try {
-					await this.onUsageRefresh();
-				} finally {
-					this.usageLine.classList.remove('cc-usageRow--dim');
-					this.logoContainer.classList.remove('cc-logo--spinning');
-					this.refreshingUsage = false;
-				}
+			this.usageRefreshBtn = document.createElement('button');
+			this.usageRefreshBtn.type = 'button';
+			this.usageRefreshBtn.className = 'cc-usageRefresh cc-tooltipTrigger';
+			this.usageRefreshBtn.setAttribute('aria-label', 'Refresh usage');
+			this.usageRefreshBtn.innerHTML = `
+				<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+					<path d="M23 4v6h-6"></path>
+					<path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+				</svg>
+			`;
+			this.usageRefreshBtn.addEventListener('click', (e) => {
+				e.preventDefault();
+				e.stopPropagation();
+				this._refreshUsage();
 			});
+
+			this.usageMetaGroup.appendChild(this.usageLastUpdatedSpan);
+			this.usageMetaGroup.appendChild(this.usageRefreshBtn);
+			this.usageLine.appendChild(this.usageMetaGroup);
+
+			this.refreshProgressChrome();
+		}
+
+		async _refreshUsage() {
+			if (!this.onUsageRefresh || this.refreshingUsage) return;
+			this.refreshingUsage = true;
+			this.usageRefreshBtn.disabled = true;
+			this.usageRefreshBtn.classList.add('cc-usageRefresh--busy');
+			this.usageMetaGroup?.classList.add('cc-usageMeta--busy');
+			try {
+				await this.onUsageRefresh();
+			} finally {
+				this.usageRefreshBtn.disabled = false;
+				this.usageRefreshBtn.classList.remove('cc-usageRefresh--busy');
+				this.usageMetaGroup?.classList.remove('cc-usageMeta--busy');
+				this.refreshingUsage = false;
+			}
+		}
+
+		_renderUsageLastUpdated() {
+			if (!this.usageLastUpdatedSpan) return;
+			if (this.usageLastUpdatedMs == null) {
+				this.usageLastUpdatedSpan.textContent = '';
+				this.usageLastUpdatedSpan.removeAttribute('title');
+				return;
+			}
+			this.usageLastUpdatedSpan.textContent = formatRelativeUpdated(this.usageLastUpdatedMs);
+			this.usageLastUpdatedSpan.title = formatRelativeUpdatedTitle(this.usageLastUpdatedMs);
 		}
 
 		_setupTooltips() {
-			this.lengthTooltip = makeTooltip(
-				"Approximate token count · excludes system prompt\n200k context limit · compacts before reaching it\nGeneric tokenizer — may differ slightly from Claude's"
-			);
+			this.lengthTooltip = makeTooltip(LENGTH_TOOLTIP_DEFAULT);
 			setupTooltip(this.lengthGroup, this.lengthTooltip, { topOffset: 8 });
 
-			setupTooltip(
-				this.cachedDisplay,
-				makeTooltip('Messages sent while cached cost significantly less.'),
-				{ topOffset: 8 }
-			);
+			setupTooltip(this.cachedDisplay, makeTooltip('Prompt cache'), { topOffset: 8 });
 
-			this._copyTooltip = makeTooltip('Export chat history');
+			this._copyTooltip = makeTooltip('Copy chat');
 			setupTooltip(this.copyButton, this._copyTooltip, { topOffset: 8 });
 
-			this._sessionTooltip = makeTooltip('5-hour session window\nBar = usage · Line = time position\nClick to refresh');
+			this._sessionTooltip = makeTooltip('5-hour session limit');
 			setupTooltip(this.sessionGroup, this._sessionTooltip, { topOffset: 8 });
 
-			this._weeklyTooltip = makeTooltip('7-day rolling window\nBar = usage · Line = time position\nClick to refresh');
+			this._weeklyTooltip = makeTooltip('7-day limit');
 			setupTooltip(this.weeklyGroup, this._weeklyTooltip, { topOffset: 8 });
+
+			this._usageRefreshTooltip = makeTooltip('Refresh usage');
+			setupTooltip(this.usageRefreshBtn, this._usageRefreshTooltip, { topOffset: 8 });
 		}
 
 		attach() {
@@ -414,11 +495,11 @@
 				this.lengthBar = null;
 				this.lengthGroup.replaceChildren(this.lengthDisplay);
 				if (this.lengthTooltip) {
-					this.lengthTooltip.textContent =
-						"Token count invalid after context compaction\nGeneric tokenizer · excludes system prompt";
+					this.lengthTooltip.textContent = 'Unavailable after compaction';
 				}
 			} else {
 				this.lengthDisplay.style.opacity = '';
+				if (this.lengthTooltip) this.lengthTooltip.textContent = LENGTH_TOOLTIP_DEFAULT;
 				const bar = document.createElement('div');
 				bar.className = 'cc-bar cc-bar--mini';
 				this.lengthBar = bar;
@@ -501,17 +582,8 @@
 
 			if (session && typeof session.utilization === 'number') {
 				const rawPct = session.utilization;
-				const pct = Math.round(rawPct * 10) / 10;
+				this._sessionUtilPct = rawPct;
 				this.sessionResetMs = session.resets_at ? Date.parse(session.resets_at) : null;
-				this.sessionWindowStartMs = this.sessionResetMs ? this.sessionResetMs - 5 * 60 * 60 * 1000 : null;
-
-				// Compact label: "5h 42.3%"
-				this.sessionUsageSpan.textContent = `5h ${pct}%`;
-
-				// Update tooltip with reset info
-				if (this._sessionTooltip && this.sessionResetMs) {
-					this._sessionTooltip.textContent = `5-hour session window\nBar = usage · Line = time position\nResets in ${formatResetCountdown(this.sessionResetMs)}\nClick to refresh`;
-				}
 
 				const width = Math.max(0, Math.min(100, rawPct));
 				this.sessionBarFill.style.width = `${width}%`;
@@ -520,11 +592,11 @@
 				this.sessionBarFill.classList.remove('cc-full');
 				if (width >= 99.5) this.sessionBarFill.classList.add('cc-full');
 			} else {
-				this.sessionUsageSpan.textContent = '';
+				this._sessionUtilPct = null;
+				if (this.sessionInlineSpan) this.sessionInlineSpan.textContent = '';
 				this.sessionBarFill.style.width = '0%';
 				this.sessionBarFill.classList.remove('cc-warn', 'cc-critical', 'cc-full');
 				this.sessionResetMs = null;
-				this.sessionWindowStartMs = null;
 			}
 
 			const hasWeekly = weekly && typeof weekly.utilization === 'number';
@@ -532,21 +604,9 @@
 			this.sessionGroup?.classList.toggle('cc-usageGroup--single', !hasWeekly);
 
 			if (hasWeekly) {
-				this.weeklyUsageSpan.classList.remove('cc-hidden');
-				this.weeklyBar.classList.remove('cc-hidden');
-
 				const rawPct = weekly.utilization;
-				const pct = Math.round(rawPct * 10) / 10;
+				this._weeklyUtilPct = rawPct;
 				this.weeklyResetMs = weekly.resets_at ? Date.parse(weekly.resets_at) : null;
-				this.weeklyWindowStartMs = this.weeklyResetMs ? this.weeklyResetMs - 7 * 24 * 60 * 60 * 1000 : null;
-
-				// Compact label: "7d 18.2%"
-				this.weeklyUsageSpan.textContent = `7d ${pct}%`;
-
-				// Update tooltip with reset info
-				if (this._weeklyTooltip && this.weeklyResetMs) {
-					this._weeklyTooltip.textContent = `7-day rolling window\nBar = usage · Line = time position\nResets in ${formatResetCountdown(this.weeklyResetMs)}\nClick to refresh`;
-				}
 
 				const width = Math.max(0, Math.min(100, rawPct));
 				this.weeklyBarFill.style.width = `${width}%`;
@@ -555,39 +615,41 @@
 				this.weeklyBarFill.classList.remove('cc-full');
 				if (width >= 99.5) this.weeklyBarFill.classList.add('cc-full');
 			} else {
-				this.weeklyUsageSpan.classList.add('cc-hidden');
-				this.weeklyBar.classList.add('cc-hidden');
+				this._weeklyUtilPct = null;
+				if (this.weeklyInlineSpan) this.weeklyInlineSpan.textContent = '';
 				this.weeklyResetMs = null;
-				this.weeklyWindowStartMs = null;
+				this.weeklyBarFill.style.width = '0%';
 				this.weeklyBarFill.classList.remove('cc-warn', 'cc-critical', 'cc-full');
 			}
 
-			this._updateMarkers();
-		}
-
-		_updateMarkers() {
-			const now = Date.now();
-
-			if (this.sessionMarker && this.sessionWindowStartMs && this.sessionResetMs) {
-				const total = this.sessionResetMs - this.sessionWindowStartMs;
-				const elapsed = Math.max(0, Math.min(total, now - this.sessionWindowStartMs));
-				const ratio = total > 0 ? elapsed / total : 0;
-				const pct = Math.max(0, Math.min(100, ratio * 100));
-				this.sessionMarker.classList.remove('cc-hidden');
-				this.sessionMarker.style.left = `${pct}%`;
-			} else if (this.sessionMarker) {
-				this.sessionMarker.classList.add('cc-hidden');
+			if (hasAnyUsage) {
+				this.usageLastUpdatedMs = Date.now();
+				this._renderUsageLastUpdated();
 			}
 
-			if (this.weeklyMarker && this.weeklyWindowStartMs && this.weeklyResetMs) {
-				const total = this.weeklyResetMs - this.weeklyWindowStartMs;
-				const elapsed = Math.max(0, Math.min(total, now - this.weeklyWindowStartMs));
-				const ratio = total > 0 ? elapsed / total : 0;
-				const pct = Math.max(0, Math.min(100, ratio * 100));
-				this.weeklyMarker.classList.remove('cc-hidden');
-				this.weeklyMarker.style.left = `${pct}%`;
-			} else if (this.weeklyMarker) {
-				this.weeklyMarker.classList.add('cc-hidden');
+			this._renderUsageStripText();
+		}
+
+		_renderUsageStripText() {
+			if (this.sessionInlineSpan) {
+				if (typeof this._sessionUtilPct === 'number') {
+					this.sessionInlineSpan.textContent = formatUsageStripText(
+						this._sessionUtilPct,
+						this.sessionResetMs
+					);
+				} else {
+					this.sessionInlineSpan.textContent = '';
+				}
+			}
+			if (this.weeklyInlineSpan) {
+				if (typeof this._weeklyUtilPct === 'number') {
+					this.weeklyInlineSpan.textContent = formatUsageStripText(
+						this._weeklyUtilPct,
+						this.weeklyResetMs
+					);
+				} else {
+					this.weeklyInlineSpan.textContent = '';
+				}
 			}
 		}
 
@@ -607,16 +669,8 @@
 				this._renderHeader();
 			}
 
-			// Update tooltip reset countdown (progressive disclosure)
-			if (this._sessionTooltip && this.sessionResetMs) {
-				this._sessionTooltip.textContent = `5-hour session window\nBar = usage · Line = time position\nResets in ${formatResetCountdown(this.sessionResetMs)}\nClick to refresh`;
-			}
-
-			if (this._weeklyTooltip && this.weeklyResetMs) {
-				this._weeklyTooltip.textContent = `7-day rolling window\nBar = usage · Line = time position\nResets in ${formatResetCountdown(this.weeklyResetMs)}\nClick to refresh`;
-			}
-
-			this._updateMarkers();
+			this._renderUsageLastUpdated();
+			this._renderUsageStripText();
 		}
 
 		// ── Copy button + dropdown ──
