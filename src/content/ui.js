@@ -288,7 +288,7 @@
 		_initUsageLine() {
 			this.usageLine = document.createElement('div');
 			this.usageLine.className =
-				'text-text-400 text-[11px] cc-usageRow cc-hidden flex flex-row flex-nowrap items-center gap-3 w-full';
+				'text-text-400 text-[12px] cc-usageRow cc-hidden flex flex-row flex-nowrap items-center gap-3 w-full';
 
 			this.sessionGroup = document.createElement('div');
 			this.sessionGroup.className = 'cc-usageGroup cc-usageStrip';
@@ -345,7 +345,7 @@
 			this.usageRefreshBtn.className = 'cc-usageRefresh cc-tooltipTrigger';
 			this.usageRefreshBtn.setAttribute('aria-label', 'Refresh usage');
 			this.usageRefreshBtn.innerHTML = `
-				<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+				<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
 					<path d="M23 4v6h-6"></path>
 					<path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
 				</svg>
