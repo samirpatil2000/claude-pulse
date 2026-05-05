@@ -180,6 +180,17 @@
 		return parts.join('\n');
 	}
 
+	function stringifyMessageThinking(message) {
+		const parts = [];
+		const content = Array.isArray(message?.content) ? message.content : [];
+		for (const item of content) {
+			if (item?.type === 'thinking' && typeof item.thinking === 'string') {
+				parts.push(item.thinking);
+			}
+		}
+		return parts.join('\n');
+	}
+
 	async function hashString(str) {
 		if (!CC.bridge?.requestHash) return null;
 		try {
@@ -203,15 +214,16 @@
 			this._byMessageId = new Map();
 		}
 
-		async getMessageTokens(messageId, messageText) {
+		async getMessageTokens(messageId, messageText, thinkingText) {
 			const fp = await fingerprint(messageText);
-			if (!fp) return countTokens(messageText);
+			const thinking = thinkingText ? countTokens(thinkingText) : 0;
+			if (!fp) return { tokens: countTokens(messageText), thinking };
 			const cached = this._byMessageId.get(messageId);
-			if (cached && cached.fp === fp) return cached.tokens;
+			if (cached && cached.fp === fp) return { tokens: cached.tokens, thinking: cached.thinking };
 
 			const tokens = countTokens(messageText);
-			this._byMessageId.set(messageId, { fp, tokens });
-			return tokens;
+			this._byMessageId.set(messageId, { fp, tokens, thinking });
+			return { tokens, thinking };
 		}
 
 		pruneToMessageIds(keepIds) {
@@ -230,6 +242,7 @@
 		tokenCache.pruneToMessageIds(trunkIds);
 
 		let totalTokens = 0;
+		let thinkingTokens = 0;
 		let lastAssistantMs = null;
 
 		for (const msg of trunk) {
@@ -241,15 +254,20 @@
 			}
 
 			const msgText = stringifyMessageCountables(msg);
-			const msgTokens = msg?.uuid
-				? await tokenCache.getMessageTokens(msg.uuid, msgText)
-				: countTokens(msgText);
-			totalTokens += msgTokens;
+			const thinkingText = stringifyMessageThinking(msg);
+			if (msg?.uuid) {
+				const result = await tokenCache.getMessageTokens(msg.uuid, msgText, thinkingText);
+				totalTokens += result.tokens;
+				thinkingTokens += result.thinking;
+			} else {
+				totalTokens += countTokens(msgText);
+				if (thinkingText) thinkingTokens += countTokens(thinkingText);
+			}
 		}
 
 		const cachedUntil = lastAssistantMs ? lastAssistantMs + CC.CONST.CACHE_WINDOW_MS : null;
 
-		return { trunkMessageCount: trunk.length, totalTokens, lastAssistantMs, cachedUntil };
+		return { trunkMessageCount: trunk.length, totalTokens, thinkingTokens, lastAssistantMs, cachedUntil };
 	}
 
 	CC.tokens = { computeConversationMetrics, buildTrunk, formatTrunkAsText, formatTrunkAsMarkdown };

@@ -210,7 +210,7 @@
 
 		latestConversationData = data;
 		const metrics = await CC.tokens.computeConversationMetrics(data);
-		ui.setConversationMetrics({ totalTokens: metrics.totalTokens, cachedUntil: metrics.cachedUntil });
+		ui.setConversationMetrics({ totalTokens: metrics.totalTokens, thinkingTokens: metrics.thinkingTokens, cachedUntil: metrics.cachedUntil });
 	}
 
 	function handleMessageLimit(messageLimit) {
