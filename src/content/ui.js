@@ -133,6 +133,8 @@
 			this.cachedDisplay = null;
 			this.lengthBar = null;
 			this.lengthTooltip = null;
+			this.thinkingDisplay = null;
+			this.thinkingTooltip = null;
 			this.lastCachedUntilMs = null;
 			this.pendingCache = false;
 
@@ -213,6 +215,8 @@
 			this.lengthGroup.className = 'cc-tooltipTrigger';
 			this.lengthDisplay = document.createElement('span');
 			this.cachedDisplay = document.createElement('span');
+			this.thinkingDisplay = document.createElement('span');
+			this.thinkingDisplay.className = 'cc-thinkingLabel';
 			this.cacheTimeSpan = null;
 
 			this.lengthGroup.appendChild(this.lengthDisplay);
@@ -352,6 +356,9 @@
 
 			setupTooltip(this.cachedDisplay, makeTooltip('Prompt cache'), { topOffset: 8 });
 
+			this.thinkingTooltip = makeTooltip('Extended thinking tokens');
+			setupTooltip(this.thinkingDisplay, this.thinkingTooltip, { topOffset: 8 });
+
 			this._copyTooltip = makeTooltip('Copy chat');
 			setupTooltip(this.copyButton, this._copyTooltip, { topOffset: 8 });
 
@@ -431,12 +438,13 @@
 			}
 		}
 
-		setConversationMetrics({ totalTokens, cachedUntil } = {}) {
+		setConversationMetrics({ totalTokens, thinkingTokens, cachedUntil } = {}) {
 			this.pendingCache = false;
 
 			if (typeof totalTokens !== 'number') {
 				this.lengthDisplay.textContent = '';
 				this.cachedDisplay.textContent = '';
+				this.thinkingDisplay.textContent = '';
 				this.lastCachedUntilMs = null;
 				this._renderHeader();
 				return;
@@ -476,6 +484,12 @@
 				);
 			}
 
+			if (typeof thinkingTokens === 'number' && thinkingTokens > 0) {
+				this.thinkingDisplay.textContent = `${formatTokens(thinkingTokens)} thinking`;
+			} else {
+				this.thinkingDisplay.textContent = '';
+			}
+
 			const now = Date.now();
 			if (typeof cachedUntil === 'number' && cachedUntil > now) {
 				this.lastCachedUntilMs = cachedUntil;
@@ -510,6 +524,13 @@
 			if (!hasTokens) return;
 
 			const items = [this.logoContainer, this.lengthGroup];
+			const hasThinking = !!this.thinkingDisplay.textContent;
+			if (hasThinking) {
+				const thinkSep = document.createElement('span');
+				thinkSep.className = 'cc-sep';
+				thinkSep.textContent = '·';
+				items.push(thinkSep, this.thinkingDisplay);
+			}
 			if (hasCache) {
 				const sep = document.createElement('span');
 				sep.className = 'cc-sep';
