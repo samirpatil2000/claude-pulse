@@ -248,7 +248,7 @@
 
 				if (headerMissing && !headerReattachPending) {
 					headerReattachPending = true;
-					CC.waitForElement(CC.DOM.CHAT_MENU_TRIGGER, 60000).then((el) => {
+					CC.waitForHeaderAnchor(60000).then((el) => {
 						headerReattachPending = false;
 						if (el) this.attachHeader();
 					});
@@ -372,9 +372,7 @@
 		}
 
 		attachHeader() {
-			const chatMenu = document.querySelector(CC.DOM.CHAT_MENU_TRIGGER);
-			if (!chatMenu) return;
-			const anchor = chatMenu.closest(CC.DOM.CHAT_PROJECT_WRAPPER) || chatMenu.parentElement;
+			const anchor = CC.findHeaderAnchor();
 			if (!anchor) return;
 			if (anchor.nextElementSibling !== this.headerContainer) {
 				anchor.after(this.headerContainer);

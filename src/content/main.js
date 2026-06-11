@@ -54,6 +54,34 @@
 
 	CC.waitForElement = waitForElement;
 
+	function waitForHeaderAnchor(timeoutMs) {
+		const existing = CC.findHeaderAnchor();
+		if (existing) return Promise.resolve(existing);
+
+		return new Promise((resolve) => {
+			let timeoutId;
+			const observer = new MutationObserver(() => {
+				const el = CC.findHeaderAnchor();
+				if (el) {
+					if (timeoutId) clearTimeout(timeoutId);
+					observer.disconnect();
+					resolve(el);
+				}
+			});
+
+			observer.observe(document.body, { childList: true, subtree: true });
+
+			if (timeoutMs) {
+				timeoutId = setTimeout(() => {
+					observer.disconnect();
+					resolve(null);
+				}, timeoutMs);
+			}
+		});
+	}
+
+	CC.waitForHeaderAnchor = waitForHeaderAnchor;
+
 	function observeUrlChanges(callback) {
 		let lastPath = window.location.pathname;
 
@@ -228,7 +256,7 @@
 		waitForElement(CC.DOM.MODEL_SELECTOR_DROPDOWN, 60000).then((el) => {
 			if (el) ui.attachUsageLine();
 		});
-		waitForElement(CC.DOM.CHAT_MENU_TRIGGER, 60000).then((el) => {
+		waitForHeaderAnchor(60000).then((el) => {
 			if (el) ui.attachHeader();
 		});
 
