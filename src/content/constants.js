@@ -4,11 +4,23 @@
 	const CC = (globalThis.ClaudeCounter = globalThis.ClaudeCounter || {});
 
 	CC.DOM = Object.freeze({
-		CHAT_MENU_TRIGGER: '[data-testid="chat-menu-trigger"]',
+		// claude.ai removed chat-menu-trigger (~Jun 2026); try newer anchors first
+		CHAT_HEADER_ANCHORS: [
+			'[data-testid="chat-title-split"]',
+			'button:has(span.font-base-bold)',
+			'[data-testid="chat-menu-trigger"]'
+		],
 		MODEL_SELECTOR_DROPDOWN: '[data-testid="model-selector-dropdown"]',
-		CHAT_PROJECT_WRAPPER: '.chat-project-wrapper',
 		BRIDGE_SCRIPT_ID: 'cc-bridge-script'
 	});
+
+	CC.findHeaderAnchor = () => {
+		for (const selector of CC.DOM.CHAT_HEADER_ANCHORS) {
+			const el = document.querySelector(selector);
+			if (el) return el;
+		}
+		return null;
+	};
 
 	CC.CONST = Object.freeze({
 		CACHE_WINDOW_MS: 5 * 60 * 1000,
