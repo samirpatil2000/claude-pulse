@@ -12,7 +12,7 @@
   <img src="https://img.shields.io/badge/Chrome-Verified-4285F4?style=for-the-badge&logo=google-chrome" alt="Chrome">
   <img src="https://img.shields.io/badge/Firefox-Compatible-FF7139?style=for-the-badge&logo=firefox-browser" alt="Firefox">
   <img src="https://img.shields.io/badge/Privacy-100%25_Local-brightgreen?style=for-the-badge" alt="Privacy">
-  <img src="https://img.shields.io/badge/Users-2k+%2B-blueviolet?style=for-the-badge&logo=users" alt="2k+">
+  <img src="https://img.shields.io/badge/Users-2k%2B-blueviolet?style=for-the-badge&logo=users" alt="2k+">
 </p>
 
 ---
