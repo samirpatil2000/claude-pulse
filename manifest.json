@@ -26,7 +26,16 @@
       "48": "icons/icon48.png",
       "96": "icons/icon96.png",
       "128": "icons/icon128.png"
-    }
+    },
+    "default_popup": "src/popup/popup.html"
+  },
+  "permissions": [
+    "storage",
+    "alarms",
+    "notifications"
+  ],
+  "background": {
+    "service_worker": "src/background/service-worker.js"
   },
   "content_scripts": [
     {
