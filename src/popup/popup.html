@@ -1,91 +1,60 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-mode="dark">
 <head>
-	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta charset="UTF-8" />
 	<title>Claude Pulse</title>
-	<link rel="stylesheet" href="popup.css">
+	<link rel="stylesheet" href="popup.css" />
 </head>
 <body>
-	<div class="popup-container">
-		<!-- Header -->
-		<header class="popup-header">
-			<svg class="header-logo" viewBox="0 0 300 300" fill="none">
-				<rect x="40" y="38" width="210" height="210" rx="48" fill="var(--accent-color)" />
-				<path d="M64 143 L112 143 L132 88 L152 198 L167 143 L226 143" stroke="#ffffff" stroke-width="20" stroke-linecap="round" stroke-linejoin="round" fill="none" />
-			</svg>
-			<span class="header-title">Claude Pulse</span>
+	<div class="pp">
+
+		<!-- Header: small mark + wordmark, no oversized branding -->
+		<header class="pp-header">
+			<span class="pp-logo" aria-hidden="true">
+				<svg width="14" height="14" viewBox="0 0 300 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+					<rect x="40" y="38" width="210" height="210" rx="48" fill="currentColor" fill-opacity="0.12"/>
+					<path d="M64 143 L112 143 L132 88 L152 198 L167 143 L226 143" stroke="currentColor" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/>
+				</svg>
+			</span>
+			<span class="pp-wordmark">Claude Pulse</span>
+			<span class="pp-version">1.2.1</span>
 		</header>
 
-		<!-- Main Content Area -->
-		<main class="popup-content">
-			<!-- Active Metrics State -->
-			<div id="active-state" class="state-container hidden">
-				<div class="ring-container">
-					<svg class="progress-ring-svg" width="120" height="120">
-						<circle class="progress-ring-bg" cx="60" cy="60" r="50" />
-						<circle id="progress-ring-fill" class="progress-ring-fill" cx="60" cy="60" r="50" />
-					</svg>
-					<div class="ring-label-box">
-						<span id="metrics-percentage" class="metrics-percentage">0%</span>
-						<span class="metrics-sub">5h session</span>
-					</div>
+		<!-- Body: 5h session and when it resets -->
+		<div class="pp-body">
+			<div class="pp-row">
+				<span class="pp-row__label">5h session</span>
+				<div class="pp-bar">
+					<div id="session-bar-fill" class="pp-bar__fill" style="width: 0%"></div>
 				</div>
-				<div class="metrics-meta">
-					<span id="metrics-reset-label" class="reset-label">Resets at --:--</span>
-					<span id="last-updated" class="last-updated">Last synced: Just now</span>
-				</div>
+				<span id="session-meta" class="pp-row__meta">0%</span>
 			</div>
 
-			<!-- Empty State -->
-			<div id="empty-state" class="state-container">
-				<div class="empty-icon-box">
-					<svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-						<path d="M3 12h3l3-9 4 18 3-12h5" stroke-linecap="round" stroke-linejoin="round"/>
-					</svg>
-				</div>
-				<p class="empty-title">Awaiting Pulse Data</p>
-				<p class="empty-desc">Open a conversation on Claude.ai to sync your usage metrics in real-time.</p>
-				<button id="btn-open-claude" class="btn-primary">
-					<span>Open Claude.ai</span>
-					<svg class="btn-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-						<line x1="5" y1="12" x2="19" y2="12"></line>
-						<polyline points="12 5 19 12 12 19"></polyline>
-					</svg>
-				</button>
-			</div>
-		</main>
+			<p class="pp-note">No resets scheduled</p>
+		</div>
 
-		<!-- Divider -->
-		<div class="popup-divider"></div>
+		<!-- Sync status: quiet metadata, not a colored alert -->
+		<div class="pp-sync">
+			<span class="pp-sync__text">Synced --</span>
+			<button class="pp-refresh" type="button" aria-label="Refresh usage">
+				<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+					<path d="M23 4v6h-6"></path>
+					<path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+				</svg>
+			</button>
+		</div>
 
-		<!-- Developer Footer -->
-		<footer class="developer-card">
-			<div class="dev-info">
-				<div class="dev-text">
-					<span class="dev-name">Samir Patil</span>
-					<span class="dev-role">Creator of Claude Pulse</span>
-				</div>
-			</div>
-			<div class="dev-links">
-				<a href="https://x.com/sampatil1010" target="_blank" class="dev-link-btn" title="Follow on X">
-					<svg class="link-icon" viewBox="0 0 24 24" fill="currentColor">
-						<path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
-					</svg>
-				</a>
-				<a href="https://github.com/samirpatil2000" target="_blank" class="dev-link-btn" title="GitHub Profile">
-					<svg class="link-icon" viewBox="0 0 24 24" fill="currentColor">
-						<path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/>
-					</svg>
-				</a>
-				<a href="https://github.com/samirpatil2000/claude-pulse" target="_blank" class="dev-link-btn" title="GitHub Repository">
-					<svg class="link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-						<path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22" stroke-linecap="round" stroke-linejoin="round"/>
-					</svg>
-				</a>
-			</div>
+		<!-- Footer: repo link (functional) + a quiet developer credit, not a card -->
+		<footer class="pp-footer">
+			<a class="pp-footer__repo" href="https://github.com/samirpatil2000/claude-pulse" target="_blank" rel="noopener">
+				<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.58 2 12.25c0 4.53 2.87 8.37 6.84 9.73.5.1.68-.22.68-.49 0-.24-.01-.87-.01-1.71-2.78.62-3.37-1.37-3.37-1.37-.45-1.18-1.11-1.5-1.11-1.5-.91-.64.07-.63.07-.63 1 .07 1.53 1.05 1.53 1.05.89 1.57 2.34 1.11 2.91.85.09-.67.35-1.11.63-1.37-2.22-.26-4.56-1.14-4.56-5.07 0-1.12.39-2.03 1.03-2.75-.1-.26-.45-1.31.1-2.72 0 0 .84-.28 2.75 1.05a9.3 9.3 0 0 1 5 0c1.91-1.33 2.75-1.05 2.75-1.05.55 1.41.2 2.46.1 2.72.64.72 1.03 1.63 1.03 2.75 0 3.94-2.34 4.8-4.57 5.06.36.32.68.94.68 1.9 0 1.37-.01 2.47-.01 2.81 0 .27.18.6.69.49A10.26 10.26 0 0 0 22 12.25C22 6.58 17.52 2 12 2z"/></svg>
+				<span>Source</span>
+			</a>
+			<span class="pp-footer__credit">by Samir Patil</span>
 		</footer>
+
 	</div>
+	<script src="../shared/format.js"></script>
 	<script src="popup.js"></script>
 </body>
 </html>

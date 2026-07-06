@@ -43,6 +43,7 @@
       "css": ["src/styles.css"],
       "js": [
         "src/content/constants.js",
+        "src/shared/format.js",
         "src/content/bridge-client.js",
         "src/vendor/o200k_base.js",
         "src/content/tokens.js",

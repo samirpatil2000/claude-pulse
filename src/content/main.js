@@ -323,6 +323,19 @@
 		}, 60000);
 	});
 
+	if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.onMessage) {
+		chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+			if (request && request.action === 'refresh_usage') {
+				refreshUsage().then(() => {
+					sendResponse({ success: true });
+				}).catch(() => {
+					sendResponse({ success: false });
+				});
+				return true;
+			}
+		});
+	}
+
 	handleUrlChange();
 
 	function tick() {

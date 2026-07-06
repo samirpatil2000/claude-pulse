@@ -5,31 +5,6 @@
 
 	// ── Formatting helpers ──
 
-	function formatSeconds(totalSeconds) {
-		const minutes = Math.floor(totalSeconds / 60);
-		const seconds = totalSeconds % 60;
-		return `${minutes}:${String(seconds).padStart(2, '0')}`;
-	}
-
-	function formatResetCountdown(timestampMs) {
-		const diffMs = timestampMs - Date.now();
-		if (diffMs <= 0) return '0s';
-
-		const totalSeconds = Math.floor(diffMs / 1000);
-		if (totalSeconds < 60) return `${totalSeconds}s`;
-
-		const totalMinutes = Math.round(totalSeconds / 60);
-		if (totalMinutes < 60) return `${totalMinutes}m`;
-
-		const hours = Math.floor(totalMinutes / 60);
-		const minutes = totalMinutes % 60;
-		if (hours < 24) return `${hours}h ${minutes}m`;
-
-		const days = Math.floor(hours / 24);
-		const remHours = hours % 24;
-		return `${days}d ${remHours}h`;
-	}
-
 	function formatTokens(count) {
 		if (count >= 1000) {
 			const k = count / 1000;
@@ -40,15 +15,6 @@
 	}
 
 	const LENGTH_TOOLTIP_DEFAULT = 'Estimated tokens (~)';
-
-	function formatUsageStripText(rawPct, resetMs) {
-		const used = Math.round(rawPct * 10) / 10;
-		const parts = [`${used}% used`];
-		if (resetMs != null && Number.isFinite(resetMs)) {
-			parts.push(`resets in ${formatResetCountdown(resetMs)}`);
-		}
-		return parts.join(' · ');
-	}
 
 	// ── Tooltip system ──
 
@@ -226,7 +192,23 @@
 		}
 
 		_observeTheme() {
-			const observer = new MutationObserver(() => this.refreshProgressChrome());
+			const saveTheme = () => {
+				const mode = this._isDark() ? 'dark' : 'light';
+				if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
+					try {
+						chrome.storage.local.set({ pulse_theme_mode: mode });
+					} catch (e) {
+						// ignore context invalidation
+					}
+				}
+			};
+
+			saveTheme();
+
+			const observer = new MutationObserver(() => {
+				this.refreshProgressChrome();
+				saveTheme();
+			});
 			observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-mode'] });
 		}
 
@@ -481,7 +463,7 @@
 				const { cacheColor } = this.getProgressChrome();
 				this.cacheTimeSpan = Object.assign(document.createElement('span'), {
 					className: 'cc-cacheTime',
-					textContent: formatSeconds(secondsLeft)
+					textContent: CC.format.formatSeconds(secondsLeft)
 				});
 				this.cacheTimeSpan.style.color = cacheColor;
 
@@ -582,7 +564,7 @@
 		_renderUsageStripText() {
 			if (this.sessionInlineSpan) {
 				if (typeof this._sessionUtilPct === 'number') {
-					this.sessionInlineSpan.textContent = formatUsageStripText(
+					this.sessionInlineSpan.textContent = CC.format.formatUsageStripText(
 						this._sessionUtilPct,
 						this.sessionResetMs
 					);
@@ -592,7 +574,7 @@
 			}
 			if (this.weeklyInlineSpan) {
 				if (typeof this._weeklyUtilPct === 'number') {
-					this.weeklyInlineSpan.textContent = formatUsageStripText(
+					this.weeklyInlineSpan.textContent = CC.format.formatUsageStripText(
 						this._weeklyUtilPct,
 						this.weeklyResetMs
 					);
@@ -608,7 +590,7 @@
 			if (this.lastCachedUntilMs && this.lastCachedUntilMs > now) {
 				const secondsLeft = Math.max(0, Math.ceil((this.lastCachedUntilMs - now) / 1000));
 				if (this.cacheTimeSpan) {
-					this.cacheTimeSpan.textContent = formatSeconds(secondsLeft);
+					this.cacheTimeSpan.textContent = CC.format.formatSeconds(secondsLeft);
 				}
 			} else if (this.lastCachedUntilMs && this.lastCachedUntilMs <= now) {
 				this.lastCachedUntilMs = null;

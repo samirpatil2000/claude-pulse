@@ -94,6 +94,12 @@ claude-pulse/
 │   │   └── bridge-client.js # Message bridge for intercepted data
 │   ├── injected/
 │   │   └── bridge.js      # XHR/Fetch interceptor for raw API data
+│   ├── popup/
+│   │   ├── popup.html    # Toolbar icon popup UI template
+│   │   ├── popup.css     # Redesigned minimalist popup styles
+│   │   └── popup.js      # Data sync, theme, & refresh relay logic
+│   ├── shared/
+│   │   └── format.js     # Shared timing and percent format helpers
 │   └── vendor/
 │       └── o200k_base.js  # Optimized tokenizer encoding
 └── claude_pulse_logo.svg # Source vector asset
