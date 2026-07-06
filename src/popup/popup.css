@@ -111,6 +111,15 @@ body {
 	transition: width 400ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
+.pp-bar__fill.pp-warn {
+	background: #d97706 !important;
+}
+
+.pp-bar__fill.pp-critical {
+	background: #ef4444 !important;
+	animation: pp-pulseWarn 2s ease-in-out infinite;
+}
+
 .pp-row__meta {
 	width: 30px;
 	flex-shrink: 0;
@@ -118,6 +127,21 @@ body {
 	font-size: 12px;
 	color: var(--pp-text-secondary);
 	font-variant-numeric: tabular-nums;
+}
+
+.pp-row__meta.pp-warn-text {
+	color: #d97706 !important;
+	font-weight: 600;
+}
+
+.pp-row__meta.pp-critical-text {
+	color: #ef4444 !important;
+	font-weight: 600;
+}
+
+@keyframes pp-pulseWarn {
+	0%, 100% { opacity: 1; }
+	50%      { opacity: 0.75; }
 }
 
 .pp-note {

@@ -52,8 +52,14 @@
 		const noteEl = document.querySelector('.pp-note');
 		const syncEl = document.querySelector('.pp-sync__text');
 
-		if (sessionBar) sessionBar.style.width = '0%';
-		if (sessionMeta) sessionMeta.textContent = '0%';
+		if (sessionBar) {
+			sessionBar.style.width = '0%';
+			sessionBar.classList.remove('pp-warn', 'pp-critical');
+		}
+		if (sessionMeta) {
+			sessionMeta.textContent = '0%';
+			sessionMeta.classList.remove('pp-warn-text', 'pp-critical-text');
+		}
 		if (noteEl) noteEl.textContent = 'Awaiting data sync';
 		if (syncEl) {
 			syncEl.textContent = 'Not synced yet';
@@ -72,11 +78,25 @@
 		// 1. Render 5h Limit Row
 		if (fiveHour && typeof fiveHour.utilization === 'number') {
 			const used = Math.round(fiveHour.utilization * 10) / 10;
-			if (sessionBar) sessionBar.style.width = `${used}%`;
-			if (sessionMeta) sessionMeta.textContent = `${used}%`;
+			if (sessionBar) {
+				sessionBar.style.width = `${used}%`;
+				sessionBar.classList.toggle('pp-warn', used >= 80 && used < 95);
+				sessionBar.classList.toggle('pp-critical', used >= 95);
+			}
+			if (sessionMeta) {
+				sessionMeta.textContent = `${used}%`;
+				sessionMeta.classList.toggle('pp-warn-text', used >= 80 && used < 95);
+				sessionMeta.classList.toggle('pp-critical-text', used >= 95);
+			}
 		} else {
-			if (sessionBar) sessionBar.style.width = '0%';
-			if (sessionMeta) sessionMeta.textContent = '0%';
+			if (sessionBar) {
+				sessionBar.style.width = '0%';
+				sessionBar.classList.remove('pp-warn', 'pp-critical');
+			}
+			if (sessionMeta) {
+				sessionMeta.textContent = '0%';
+				sessionMeta.classList.remove('pp-warn-text', 'pp-critical-text');
+			}
 		}
 
 		// 2. Render Resets Note
