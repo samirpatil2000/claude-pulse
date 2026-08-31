@@ -21,7 +21,7 @@
 
 - **Token Counter** — Know your context window at all times. Live approximate counting using the `o200k_base` tokenizer.
 - **Cache Timer** — Never miss the 5-minute cache window. A live countdown shows exactly when your next message will be cheaper.
-- **Usage Progress Bars** — Visual monitoring of your 5-hour session and 7-day rolling limits with real-time percentage markers.
+- **Usage Meters** — Compact 5-hour and 7-day rings above the composer, with percent used and time remaining.
 - **Chat History Export** — Export your entire conversation as plain text or formatted Markdown with a single click.
 - **100% Private & Local** — No external servers, no tracking. All data is processed locally in your browser.
 - **Native UI Integration** — Discreetly blends into Claude's interface for a premium, built-in feel.
@@ -29,14 +29,15 @@
 
 ---
 
-#### Screenshots 
+#### Screenshots
 
-<img width="991" height="767" alt="Screenshot 2026-04-21 at 23 26 01" src="https://github.com/user-attachments/assets/dd006d83-ccd5-4365-9827-bb55cade66d3" />
+<p align="center">
+  <img src="screenshots/composer.png" alt="Usage meters above the Claude composer" width="900">
+</p>
 
----------
-
-
-<img width="1178" height="815" alt="image" src="https://github.com/user-attachments/assets/36003702-d5e6-4029-a319-378d354f5fa7" />
+<p align="center">
+  <img src="screenshots/home.png" alt="Claude Pulse on the Claude home screen" width="900">
+</p>
 
 
 
@@ -73,7 +74,7 @@ Claude Pulse provides a transparent look into the "invisible" metrics of your Cl
 ## 🖥️ UI Overview
 
 <p align="center">
-  <em>The injected metrics header displays tokens, cache status, usage limits, and export options directly above your chat input.</em>
+  <em>Usage meters sit above the composer. Token count, cache timer, and export stay in the chat header.</em>
 </p>
 
 ---
