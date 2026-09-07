@@ -140,6 +140,26 @@
 		return null;
 	};
 
+	// Finds the actual chat composer card (the rounded input box)
+	CC.findComposerBox = () => {
+		const editor = CC.findComposerEditor();
+		if (editor) {
+			const box = editor.closest('.rounded-composer, [data-testid="chat-input-grid-container"], fieldset, form');
+			if (box) return box;
+		}
+
+		for (const selector of CC.DOM.COMPOSER_SHELL_FALLBACKS) {
+			try {
+				const el = document.querySelector(selector);
+				if (el) return el;
+			} catch {
+				// ignore selector exceptions
+			}
+		}
+
+		return CC.findComposerSurface();
+	};
+
 	CC.CONST = Object.freeze({
 		CACHE_WINDOW_MS: 5 * 60 * 1000,
 		CONTEXT_LIMIT_TOKENS: 200000

@@ -42,7 +42,7 @@
 				renderPlaceholder();
 				return;
 			}
-			renderMetrics(data.usageState, data.lastUsageUpdateMs);
+			renderMetrics(data.usageState, data.lastUsageUpdateMs, data.accountTier);
 		});
 	}
 
@@ -67,16 +67,35 @@
 		}
 	}
 
-	function renderMetrics(usageState, lastUsageUpdateMs) {
+	function renderMetrics(usageState, lastUsageUpdateMs, accountTier) {
 		const sessionBar = document.getElementById('session-bar-fill');
 		const sessionMeta = document.getElementById('session-meta');
 		const noteEl = document.querySelector('.pp-note');
 		const syncEl = document.querySelector('.pp-sync__text');
 
 		const fiveHour = usageState.five_hour;
+		const isStale = !!usageState.isStale;
+		const now = Date.now();
+		const isOver5h = lastUsageUpdateMs && (now - lastUsageUpdateMs > 5 * 60 * 60 * 1000);
+		const resetMs = fiveHour?.resets_at ? Date.parse(fiveHour.resets_at) : null;
+		const isResetPassed = resetMs && now >= resetMs;
+
+		const showStale = isStale || (accountTier === 'free' && isOver5h && (!resetMs || isResetPassed));
 
 		// 1. Render 5h Limit Row
-		if (fiveHour && typeof fiveHour.utilization === 'number') {
+		if (showStale) {
+			if (sessionBar) {
+				sessionBar.style.width = '0%';
+				sessionBar.classList.remove('pp-warn', 'pp-critical');
+			}
+			if (sessionMeta) {
+				sessionMeta.textContent = '—%';
+				sessionMeta.classList.remove('pp-warn-text', 'pp-critical-text');
+			}
+			if (noteEl) {
+				noteEl.textContent = 'Limit unverified · Send message to sync';
+			}
+		} else if (fiveHour && typeof fiveHour.utilization === 'number') {
 			const used = Math.round(fiveHour.utilization * 10) / 10;
 			if (sessionBar) {
 				sessionBar.style.width = `${used}%`;
@@ -88,6 +107,15 @@
 				sessionMeta.classList.toggle('pp-warn-text', used >= 80 && used < 95);
 				sessionMeta.classList.toggle('pp-critical-text', used >= 95);
 			}
+
+			// Render Resets Note
+			if (isResetPassed) {
+				if (noteEl) noteEl.textContent = 'Limit reset · Send message to sync';
+			} else if (resetMs && CC.format && CC.format.formatResetCountdown) {
+				if (noteEl) noteEl.textContent = `Resets in ${CC.format.formatResetCountdown(resetMs)}`;
+			} else {
+				if (noteEl) noteEl.textContent = 'No resets scheduled';
+			}
 		} else {
 			if (sessionBar) {
 				sessionBar.style.width = '0%';
@@ -97,25 +125,12 @@
 				sessionMeta.textContent = '0%';
 				sessionMeta.classList.remove('pp-warn-text', 'pp-critical-text');
 			}
+			if (noteEl) noteEl.textContent = 'No resets scheduled';
 		}
 
-		// 2. Render Resets Note
-		let noteText = 'No resets scheduled';
-		if (CC.format && CC.format.formatResetCountdown) {
-			if (fiveHour && fiveHour.resets_at) {
-				const ms = Date.parse(fiveHour.resets_at);
-				if (ms > Date.now()) {
-					noteText = `Resets in ${CC.format.formatResetCountdown(ms)}`;
-				}
-			}
-		}
-		if (noteEl) {
-			noteEl.textContent = noteText;
-		}
-
-		// 4. Render Last Sync
+		// Render Last Sync
 		if (syncEl && typeof lastUsageUpdateMs === 'number') {
-			const syncDiff = Date.now() - lastUsageUpdateMs;
+			const syncDiff = now - lastUsageUpdateMs;
 			syncEl.classList.remove('stale');
 			
 			if (syncDiff < 60000) {
@@ -191,7 +206,7 @@
 					if (changes.pulse_usage_state) {
 						const newState = changes.pulse_usage_state.newValue;
 						if (newState && newState.usageState) {
-							renderMetrics(newState.usageState, newState.lastUsageUpdateMs);
+							renderMetrics(newState.usageState, newState.lastUsageUpdateMs, newState.accountTier);
 						}
 					}
 					if (changes.pulse_theme_mode) {

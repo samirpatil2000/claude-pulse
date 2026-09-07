@@ -228,7 +228,8 @@
 
 				if (usageMissing && !usageReattachPending) {
 					usageReattachPending = true;
-					CC.waitForComposerSurface(60000).then((el) => {
+					const waitFn = CC.waitForComposerBox || CC.waitForComposerSurface;
+					waitFn(60000).then((el) => {
 						usageReattachPending = false;
 						if (el) this.attachUsageLine();
 					});
@@ -245,8 +246,8 @@
 			this.domObserver.observe(document.body, { childList: true, subtree: true });
 		}
 
-		_buildMeter() {
-			const RING_R = 9;
+		_buildMeter(label) {
+			const RING_R = 7;
 			const CIRC = 2 * Math.PI * RING_R;
 
 			const meter = document.createElement('div');
@@ -254,19 +255,19 @@
 
 			const ring = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
 			ring.setAttribute('class', 'cc-meter__ring');
-			ring.setAttribute('viewBox', '0 0 24 24');
+			ring.setAttribute('viewBox', '0 0 18 18');
 			ring.setAttribute('aria-hidden', 'true');
 
 			const track = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
 			track.setAttribute('class', 'cc-meter__ringTrack');
-			track.setAttribute('cx', '12');
-			track.setAttribute('cy', '12');
+			track.setAttribute('cx', '9');
+			track.setAttribute('cy', '9');
 			track.setAttribute('r', String(RING_R));
 
 			const fill = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
 			fill.setAttribute('class', 'cc-meter__ringFill');
-			fill.setAttribute('cx', '12');
-			fill.setAttribute('cy', '12');
+			fill.setAttribute('cx', '9');
+			fill.setAttribute('cy', '9');
 			fill.setAttribute('r', String(RING_R));
 			fill.style.strokeDasharray = String(CIRC);
 			fill.style.strokeDashoffset = String(CIRC);
@@ -274,8 +275,9 @@
 			ring.appendChild(track);
 			ring.appendChild(fill);
 
-			const stats = document.createElement('span');
-			stats.className = 'cc-meter__stats';
+			const labelEl = document.createElement('span');
+			labelEl.className = 'cc-meter__label';
+			labelEl.textContent = label;
 
 			const pct = document.createElement('span');
 			pct.className = 'cc-meter__pct';
@@ -283,13 +285,12 @@
 			const remain = document.createElement('span');
 			remain.className = 'cc-meter__remain';
 
-			stats.appendChild(pct);
-			stats.appendChild(remain);
-
 			meter.appendChild(ring);
-			meter.appendChild(stats);
+			meter.appendChild(labelEl);
+			meter.appendChild(pct);
+			meter.appendChild(remain);
 
-			return { meter, pct, remain, ring, fill, circ: CIRC };
+			return { meter, labelEl, pct, remain, ring, fill, circ: CIRC };
 		}
 
 		_setRingProgress(fill, circ, pct) {
@@ -304,7 +305,7 @@
 			this.usageLine.setAttribute('role', 'group');
 			this.usageLine.setAttribute('aria-label', 'Claude usage limits');
 
-			const session = this._buildMeter();
+			const session = this._buildMeter('5h');
 			this.sessionGroup = session.meter;
 			this.sessionPctSpan = session.pct;
 			this.sessionRemainSpan = session.remain;
@@ -312,7 +313,7 @@
 			this.sessionRingFill = session.fill;
 			this._sessionRingCirc = session.circ;
 
-			const weekly = this._buildMeter();
+			const weekly = this._buildMeter('7d');
 			this.weeklyGroup = weekly.meter;
 			this.weeklyGroup.classList.add('cc-hidden');
 			this.weeklyPctSpan = weekly.pct;
@@ -403,11 +404,11 @@
 
 		attachUsageLine() {
 			if (!this.usageLine) return;
-			const surface = CC.findComposerSurface();
-			if (!surface) return;
+			const box = CC.findComposerBox ? CC.findComposerBox() : CC.findComposerSurface();
+			if (!box) return;
 
-			if (surface.previousElementSibling !== this.usageLine) {
-				surface.before(this.usageLine);
+			if (box.lastElementChild !== this.usageLine) {
+				box.appendChild(this.usageLine);
 			}
 			this.refreshProgressChrome();
 		}
@@ -535,12 +536,22 @@
 
 		setUsage(usage) {
 			this.refreshProgressChrome();
+			const isStale = !!usage?.isStale;
+			this._isStale = isStale;
 			const session = usage?.five_hour || null;
 			const weekly = usage?.seven_day || null;
 
 			this.usageLine?.classList.remove('cc-hidden');
 
-			if (session && typeof session.utilization === 'number') {
+			if (isStale) {
+				this._sessionUtilPct = null;
+				this.sessionResetMs = null;
+				this._setRingProgress(this.sessionRingFill, this._sessionRingCirc, 0);
+				this._applyMeterLevel(this.sessionRingFill, this.sessionPctSpan, this.sessionGroup, 0);
+				if (this._sessionTooltip) {
+					this._sessionTooltip.textContent = '5-hour session · Limit unverified (syncs on next message)';
+				}
+			} else if (session && typeof session.utilization === 'number') {
 				const rawPct = session.utilization;
 				this._sessionUtilPct = rawPct;
 				this.sessionResetMs = session.resets_at ? Date.parse(session.resets_at) : null;
@@ -548,14 +559,26 @@
 				const width = Math.max(0, Math.min(100, rawPct));
 				this._setRingProgress(this.sessionRingFill, this._sessionRingCirc, width);
 				this._applyMeterLevel(this.sessionRingFill, this.sessionPctSpan, this.sessionGroup, width);
+				if (this._sessionTooltip) {
+					this._sessionTooltip.textContent = '5-hour session';
+				}
 			} else {
 				this._sessionUtilPct = 0;
 				this.sessionResetMs = null;
 				this._setRingProgress(this.sessionRingFill, this._sessionRingCirc, 0);
 				this._applyMeterLevel(this.sessionRingFill, this.sessionPctSpan, this.sessionGroup, 0);
+				if (this._sessionTooltip) {
+					this._sessionTooltip.textContent = '5-hour session';
+				}
 			}
 
-			const hasWeekly = weekly && typeof weekly.utilization === 'number';
+			if (usage?.accountTier === 'free' && this._usageRefreshTooltip) {
+				this._usageRefreshTooltip.textContent = 'Free plan · Updates when messages are sent';
+			} else if (this._usageRefreshTooltip) {
+				this._usageRefreshTooltip.textContent = 'Refresh usage';
+			}
+
+			const hasWeekly = !isStale && weekly && typeof weekly.utilization === 'number';
 			this.weeklyGroup?.classList.toggle('cc-hidden', !hasWeekly);
 
 			if (hasWeekly) {
@@ -578,12 +601,25 @@
 			this._renderUsageStripText();
 		}
 
-		_fillMeterText(pctEl, remainEl, pct, resetMs) {
+		_fillMeterText(pctEl, remainEl, pct, resetMs, isStale) {
 			if (pctEl) {
-				pctEl.textContent = typeof pct === 'number' ? CC.format.formatUsagePct(pct) : '';
+				if (isStale) {
+					pctEl.textContent = '—%';
+					pctEl.classList.add('cc-meter__pct--stale');
+				} else {
+					pctEl.classList.remove('cc-meter__pct--stale');
+					pctEl.textContent = typeof pct === 'number' ? CC.format.formatUsagePct(pct) : '0%';
+				}
 			}
 			if (remainEl) {
-				remainEl.textContent = CC.format.formatRemaining(resetMs);
+				if (isStale) {
+					remainEl.textContent = '· unverified';
+					remainEl.classList.add('cc-meter__remain--stale');
+				} else {
+					remainEl.classList.remove('cc-meter__remain--stale');
+					const remaining = CC.format.formatRemaining(resetMs);
+					remainEl.textContent = remaining ? `· ${remaining} left` : '';
+				}
 			}
 		}
 
@@ -592,13 +628,15 @@
 				this.sessionPctSpan,
 				this.sessionRemainSpan,
 				this._sessionUtilPct,
-				this.sessionResetMs
+				this.sessionResetMs,
+				this._isStale
 			);
 			this._fillMeterText(
 				this.weeklyPctSpan,
 				this.weeklyRemainSpan,
 				this._weeklyUtilPct,
-				this.weeklyResetMs
+				this.weeklyResetMs,
+				false
 			);
 		}
 
