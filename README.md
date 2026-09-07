@@ -21,7 +21,7 @@
 
 - **Token Counter** — Know your context window at all times. Live approximate counting using the `o200k_base` tokenizer.
 - **Cache Timer** — Never miss the 5-minute cache window. A live countdown shows exactly when your next message will be cheaper.
-- **Usage Meters** — Compact 5-hour and 7-day rings above the composer, with percent used and time remaining.
+- **Usage Meters** — Compact 5-hour and 7-day rings seamlessly integrated inside the composer card, showing percent used and time remaining.
 - **Chat History Export** — Export your entire conversation as plain text or formatted Markdown with a single click.
 - **100% Private & Local** — No external servers, no tracking. All data is processed locally in your browser.
 - **Native UI Integration** — Discreetly blends into Claude's interface for a premium, built-in feel.
@@ -32,7 +32,7 @@
 #### Screenshots
 
 <p align="center">
-  <img src="screenshots/composer.png" alt="Usage meters above the Claude composer" width="900">
+  <img src="screenshots/composer.png" alt="Usage meters inside the Claude composer" width="900">
 </p>
 
 <p align="center">
@@ -67,14 +67,14 @@ Claude Pulse provides a transparent look into the "invisible" metrics of your Cl
 
 - **Security First**: The extension requires no special permissions and runs entirely within the `claude.ai` sandbox.
 - **Tiktoken Integration**: Tokenization is powered by a local implementation of the `o200k_base` encoding, ensuring counts are as accurate as possible.
-- **Real-time Synchronization**: Usage data is synced directly from Claude's `/usage` endpoint when you refresh the UI or send a message.
+- **Real-time Synchronization**: Usage data is synced directly from Claude's `/usage` endpoint (and completion streams on Free accounts) when you refresh the UI or send a message.
 
 ---
 
 ## 🖥️ UI Overview
 
 <p align="center">
-  <em>Usage meters sit above the composer. Token count, cache timer, and export stay in the chat header.</em>
+  <em>Usage meters sit seamlessly inside the composer. Token count, cache timer, and export stay in the chat header.</em>
 </p>
 
 ---
