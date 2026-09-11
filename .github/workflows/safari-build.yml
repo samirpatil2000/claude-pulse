@@ -1,0 +1,74 @@
+name: Safari Build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build Safari macOS App
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Report initial disk usage
+        run: df -h
+
+      - name: Free disk space (macOS)
+        run: |
+          echo "=== Removing iOS/tvOS/watchOS simulator runtimes ==="
+          xcrun simctl runtime list 2>/dev/null || true
+          sudo rm -rf /Library/Developer/CoreSimulator/Profiles/Runtimes/
+          sudo rm -rf ~/Library/Caches/com.apple.dt.Xcode/Downloads/
+          sudo rm -rf /Users/runner/Library/Caches/com.apple.dt.Xcode/Downloads/
+
+          echo "=== Removing Android SDK (not needed for this build) ==="
+          sudo rm -rf /usr/local/lib/android
+
+          echo "=== Cleaning Homebrew download cache ==="
+          brew cleanup --prune=all 2>/dev/null || true
+          rm -rf "$(brew --cache)"
+
+          echo "=== Disk usage after cleanup ==="
+          df -h
+
+      - name: Generate Xcode project
+        run: ./safari/build.sh
+
+      - name: List available Xcode schemes
+        run: |
+          xcodebuild -list \
+            -project "safari/build/Claude Pulse/Claude Pulse.xcodeproj"
+
+      - name: Build macOS target (unsigned)
+        run: |
+          xcodebuild \
+            -project "safari/build/Claude Pulse/Claude Pulse.xcodeproj" \
+            -scheme "Claude Pulse (macOS)" \
+            -configuration Release \
+            -derivedDataPath safari/build/DerivedData \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO \
+            build
+
+      - name: Upload macOS app artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ClaudePulse-Safari-macOS
+          path: "safari/build/DerivedData/Build/Products/Release/Claude Pulse.app"
+          retention-days: 30
+          if-no-files-found: error
+
+      - name: Clean up intermediate build artifacts
+        if: always()
+        run: |
+          echo "=== Removing DerivedData ==="
+          rm -rf safari/build/DerivedData
+          echo "=== Final disk usage ==="
+          df -h
