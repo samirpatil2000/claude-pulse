@@ -35,10 +35,6 @@
   <img src="screenshots/composer.png" alt="Usage meters inside the Claude composer" width="900">
 </p>
 
-<p align="center">
-  <img src="screenshots/home.png" alt="Claude Pulse on the Claude home screen" width="900">
-</p>
-
 
 
 ### 📥 Installation
