@@ -33,7 +33,11 @@
 /* ── Header: tokens + cache timer ── */
 
 .cc-header {
-	margin-top: 3px;
+	display: inline-flex;
+	align-items: center;
+	vertical-align: middle;
+	flex-shrink: 0;
+	margin-left: 8px;
 	user-select: none;
 	animation: cc-fadeIn 300ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }

@@ -500,24 +500,32 @@
 		_renderHeader() {
 			this.headerContainer.replaceChildren();
 
-			const hasTokens = !!this.lengthDisplay.textContent;
-			const hasCache = !!this.cachedDisplay.textContent;
+			const hasTokens = !!this.lengthDisplay?.textContent;
+			const hasCache = !!this.cachedDisplay?.textContent;
+			const hasCopy = !!this.copyButton;
 
-			if (!hasTokens) return;
+			if (!hasTokens && !hasCopy) return;
 
-			const items = [this.logoContainer, this.lengthGroup];
-			if (hasCache) {
-				const sep = document.createElement('span');
-				sep.className = 'cc-sep';
-				sep.textContent = '·';
-				items.push(sep, this.cachedDisplay);
+			const items = [];
+			if (hasTokens) {
+				items.push(this.logoContainer, this.lengthGroup);
+				if (hasCache) {
+					const sep = document.createElement('span');
+					sep.className = 'cc-sep';
+					sep.textContent = '·';
+					items.push(sep, this.cachedDisplay);
+				}
+			} else {
+				// While tokens are computing or if empty, still show logo
+				items.push(this.logoContainer);
 			}
 
-			// Add copy button separator and button
-			const copySep = document.createElement('span');
-			copySep.className = 'cc-sep';
-			copySep.textContent = '·';
-			items.push(copySep, this.copyButton);
+			if (hasCopy) {
+				const copySep = document.createElement('span');
+				copySep.className = 'cc-sep';
+				copySep.textContent = '·';
+				items.push(copySep, this.copyButton);
+			}
 
 			this.headerDisplay.replaceChildren(...items);
 			this.headerContainer.appendChild(this.headerDisplay);

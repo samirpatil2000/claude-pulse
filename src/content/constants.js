@@ -8,9 +8,15 @@
 		CHAT_HEADER_ANCHORS: [
 			'[data-testid="chat-title-split"]',
 			'button:has(span.font-base-bold)',
-			'[data-testid="chat-menu-trigger"]',
+			'button:has(span[class*="font-"])',
+			'div[class*="sticky"] button[aria-haspopup="menu"]',
+			'div[class*="sticky"] button:has(svg)',
+			'div[class*="sticky"] div > button',
 			'header button[aria-haspopup="menu"]',
-			'header button[aria-label*="chat" i]'
+			'header button[aria-label*="chat" i]',
+			'[data-testid="chat-menu-trigger"]',
+			'button[aria-label*="chat" i]',
+			'button[aria-label*="menu" i]'
 		],
 		MODEL_SELECTOR_DROPDOWN: '[data-testid="model-selector-dropdown"]',
 		MODEL_SELECTOR_ANCHORS: [
@@ -37,14 +43,74 @@
 	});
 
 	CC.findHeaderAnchor = () => {
-		for (const selector of CC.DOM.CHAT_HEADER_ANCHORS) {
-			try {
-				const el = document.querySelector(selector);
-				if (el) return el;
-			} catch {
-				// ignore selector exceptions
+		const isExcluded = (el) => {
+			if (!el) return true;
+			if (el.classList?.contains('cc-header') || el.closest('.cc-header')) return true;
+			return !!el.closest('nav, aside, [aria-label*="sidebar" i], .cc-usageRow, fieldset, form, footer');
+		};
+
+		// 1. Target the chat title container directly (the left sibling of data-header-spacer)
+		try {
+			const spacer = document.querySelector('[data-header-spacer]');
+			if (spacer) {
+				let prev = spacer.previousElementSibling;
+				while (prev && isExcluded(prev)) {
+					prev = prev.previousElementSibling;
+				}
+				if (prev) return prev;
 			}
+		} catch {}
+
+		// 2. Target via session-title-split / chat-title-split container
+		try {
+			const split = document.querySelector('[data-testid*="title-split"]');
+			if (split && !isExcluded(split)) {
+				const group = split.closest('.font-base, [class*="title-row"], [class*="min-w-0"]') || split;
+				return group;
+			}
+		} catch {}
+
+		// 3. Fallback: Locate top bar from Share button and pick the title element before the spacer
+		try {
+			const buttons = Array.from(document.querySelectorAll('button'));
+			const shareBtn = buttons.find((b) => {
+				if (isExcluded(b)) return false;
+				const txt = b.textContent?.trim().toLowerCase();
+				return txt === 'share' || b.getAttribute('aria-label')?.toLowerCase()?.includes('share');
+			});
+			if (shareBtn) {
+				let cur = shareBtn.parentElement;
+				while (cur && cur !== document.body && cur !== document.documentElement) {
+					const spacer = cur.querySelector('[data-header-spacer]');
+					if (spacer) {
+						let prev = spacer.previousElementSibling;
+						while (prev && isExcluded(prev)) {
+							prev = prev.previousElementSibling;
+						}
+						if (prev) return prev;
+					}
+					const split = cur.querySelector('[data-testid*="title-split"]');
+					if (split && !isExcluded(split)) {
+						return split.closest('.font-base, [class*="title-row"], [class*="min-w-0"]') || split;
+					}
+					cur = cur.parentElement;
+				}
+			}
+		} catch {}
+
+		// 4. Explicit selectors fallback
+		for (const sel of CC.DOM.CHAT_HEADER_ANCHORS) {
+			try {
+				const matches = document.querySelectorAll(sel);
+				for (const el of matches) {
+					if (!isExcluded(el)) {
+						const txt = el.textContent?.trim().toLowerCase();
+						if (txt && txt !== 'share') return el;
+					}
+				}
+			} catch {}
 		}
+
 		return null;
 	};
 
